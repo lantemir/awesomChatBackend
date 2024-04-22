@@ -7,6 +7,12 @@ from django_app import models
 from django.core.paginator import Paginator
 from django_app import serializers
 
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserSerializer
+
 def index(request):
     return JsonResponse({"response": "Ok!"})
 
@@ -51,3 +57,26 @@ def chat(request, sms_id=None):
         return Response(status= status.HTTP_500_INTERNAL_SERVER_ERROR)
        
 
+
+def get_auth_for_user(user):
+    tokens = RefreshToken.for_user(user)
+    print('token', tokens)
+    return{
+        'user': UserSerializer(user).data
+    }
+
+class SignInView(APIView):    
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        print("hello world!")
+        username = request.data.get('username') 
+        password = request.data.get('password')
+        if not username or not password:
+            return Response(status=400)
+        user = authenticate(username = username, password=password)
+        if not user:
+            Response(status=401)
+        user_data = get_auth_for_user(user)
+
+        return Response(user_data)

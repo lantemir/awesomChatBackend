@@ -26,20 +26,71 @@ SECRET_KEY = 'django-insecure-#_iipqp#$vxjow&$u8*=ha0w-1$ydn1_&)ea#6m1gcnxc@m@-_
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CORS_ORIGIN_WHITELIST = ('*')
+CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_ALL_ORIGINS = False
+
+
 CORS_ALLOWED_ORIGINS = [
     # "https://example.com",
     # "https://sub.example.com",
+    "exp://ftx9tiq-anonymous-8081.exp.direct",
+    "exp://localhost:8081",
     "http://localhost:8000",
-    "http://localhost:3000",
-
+    "http://localhost:3000",   
+    "http://localhost:8081",
+    "http://192.168.1.46:8081",
+    "http://127.0.0.1:8081",
     "http://127.0.0.1:8000",
     "http://127.0.0.1:3000",
+    "exp://192.168.1.46:8081",
+    "http://192.168.1.46:8081",
+    "http://127.0.0.1:8081",
+    "http://localhost:19001",
+    "http://127.0.0.1:19001",
+    "http://192.168.1.46:19001",
+    
+    
+    
 ]
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',
+    'http://localhost:8081',
+    "http://127.0.0.1:8081",
+    'http://localhost:3000',
+    "exp://ftx9tiq-anonymous-8081.exp.direct",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://localhost:8081',
+    "http://127.0.0.1:8081",
+    'http://localhost:3000',
+    "exp://ftx9tiq-anonymous-8081.exp.direct",
+]
+
+
+
+
+# AUTH_USER_MODEL = 'django_app.User'
 
 # Application definition
 
+
+#jwt token
+REST_FRAMEWORK = {
+ 
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+      
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+   
+}
+
 INSTALLED_APPS = [
-    "corsheaders",
+    'rest_framework_simplejwt',    
+   
     'grappelli',
 
     'django.contrib.admin',
@@ -47,11 +98,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-
+    'django.contrib.staticfiles',    
+      
     'rest_framework',
-    'django_app',
+    'corsheaders',
+    'django_app', 
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -85,6 +139,19 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        #'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
 
 WSGI_APPLICATION = 'django_settings.wsgi.application'
 
@@ -148,3 +215,21 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# CORS_ALLOW_HEADERS = (
+#     "accept",
+#     "authorization",
+#     "content-type",
+#     "user-agent",
+#     "x-csrftoken",
+#     "x-requested-with",
+# )
+# 
+# CORS_ALLOW_HEADERS = ('content-disposition', 'accept-encoding',
+#                       'content-type', 'accept', 'origin', 'Authorization',
+#                       'access-control-allow-methods')
+# CORS_ALLOW_CREDENTIALS = True
+# CSRF_COOKIE_SECURE = False, 
+# CORS_ORIGIN_ALLOW_ALL = True

@@ -44,3 +44,4 @@ class TextModelAdmin(admin.ModelAdmin):
     ]
 
 admin.site.register(models.TextModel, TextModelAdmin )
+admin.site.register(models.Profile)
