@@ -1,11 +1,12 @@
 from django.urls import path, include, re_path
 from django_app import views
-from .views import SignInView
+from .views import SignInView, SignUpView
 
 
 urlpatterns = [
     path('', views.index, name="index"),
     path('signin/', SignInView.as_view()),
+    path('signup/', SignUpView.as_view()),
 
     
 

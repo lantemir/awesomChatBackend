@@ -25,30 +25,35 @@ SECRET_KEY = 'django-insecure-#_iipqp#$vxjow&$u8*=ha0w-1$ydn1_&)ea#6m1gcnxc@m@-_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-CORS_ORIGIN_WHITELIST = ('*')
-CORS_ALLOW_CREDENTIALS = True
+ALLOWED_HOSTS = ['192.168.1.46']
+# CORS_ORIGIN_WHITELIST = ('*')
+# CORS_ALLOW_CREDENTIALS = True
 # CORS_ALLOW_ALL_ORIGINS = False
 
 
 CORS_ALLOWED_ORIGINS = [
     # "https://example.com",
-    # "https://sub.example.com",
-    "exp://ftx9tiq-anonymous-8081.exp.direct",
-    "exp://localhost:8081",
-    "http://localhost:8000",
-    "http://localhost:3000",   
-    "http://localhost:8081",
-    "http://192.168.1.46:8081",
+    # "https://sub.example.com",   
+    # "exp://localhost:8081",
+    # "http://localhost:8000",
+    # "http://localhost:3000",   
+    # "http://localhost:8081",
+    # "http://192.168.1.46:8081",
+    # "http://127.0.0.1:8081",
+    # "http://127.0.0.1:8000",
+    # "http://127.0.0.1:3000",
+    # "exp://192.168.1.46:8081",
+    # "http://192.168.1.46:8081",
+    # "http://127.0.0.1:8081",
+    # "http://localhost:19001",
+    # "http://127.0.0.1:19001",
+    # "http://192.168.1.46:19001",
+    
+
+     'http://localhost:8000',
+    'http://localhost:8081',
     "http://127.0.0.1:8081",
-    "http://127.0.0.1:8000",
-    "http://127.0.0.1:3000",
-    "exp://192.168.1.46:8081",
-    "http://192.168.1.46:8081",
-    "http://127.0.0.1:8081",
-    "http://localhost:19001",
-    "http://127.0.0.1:19001",
-    "http://192.168.1.46:19001",
+    'http://localhost:3000',
     
     
     
@@ -59,7 +64,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:8081',
     "http://127.0.0.1:8081",
     'http://localhost:3000',
-    "exp://ftx9tiq-anonymous-8081.exp.direct",
+   
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -67,7 +72,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8081',
     "http://127.0.0.1:8081",
     'http://localhost:3000',
-    "exp://ftx9tiq-anonymous-8081.exp.direct",
+  
 ]
 
 

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django_app import models
 
+
 # Register your models here.
 
 admin.site.site_header = "Панель 1"
@@ -45,3 +46,5 @@ class TextModelAdmin(admin.ModelAdmin):
 
 admin.site.register(models.TextModel, TextModelAdmin )
 admin.site.register(models.Profile)
+
+
