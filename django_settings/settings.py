@@ -93,7 +93,30 @@ REST_FRAMEWORK = {
    
 }
 
+#для картинок
+
+#MEDIA_ROOT = Path(BASE_DIR, 'static_external/media')
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+
+#MEDIA_ROOT = Path(BASE_DIR, 'static/media')
+
+#Daphne
+ASGI_APPLICATION = 'django_settings.asgi.application'
+
+#Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)]
+        }
+    }
+}
+
 INSTALLED_APPS = [
+    'daphne',
+    'rest_framework',
     'rest_framework_simplejwt',    
    
     'grappelli',
@@ -105,7 +128,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',    
       
-    'rest_framework',
+    
     'corsheaders',
     'django_app', 
 ]

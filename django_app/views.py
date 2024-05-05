@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, SignUpSerializer
+from .serializers import UserSerializer, SignUpSerializer, ProfileSerializer
 
 def index(request):
     return JsonResponse({"response": "Ok!"})
@@ -61,12 +61,14 @@ def chat(request, sms_id=None):
 def get_auth_for_user(user):
     tokens = RefreshToken.for_user(user)
     print('token', tokens)
+    prof = models.Profile.objects.get(user = user)
     return{
         'user': UserSerializer(user).data,
         'tokens': {
             'access':str(tokens.access_token),
             'refresh': str(tokens)            
-        }
+        },
+        'profile': ProfileSerializer(prof).data
     }
 
 class SignInView(APIView):    
@@ -82,6 +84,8 @@ class SignInView(APIView):
             Response(status=401)
         user_data = get_auth_for_user(user)
 
+        print("user_data SignInView@@@", user_data)
+
         return Response(user_data)
     
 class SignUpView(APIView):
@@ -92,5 +96,6 @@ class SignUpView(APIView):
         new_user.is_valid(raise_exception = True)
         user = new_user.save()
         user_data = get_auth_for_user(user)
+        print("user_data SignUpView@@@", user_data)
 
         return Response(user_data)

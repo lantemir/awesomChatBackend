@@ -25,6 +25,13 @@ class UserSerializer(serializers.ModelSerializer):
         lname = obj.last_name.capitalize()
         return fname + ' ' + lname
     
+class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    
+    class Meta:
+        model = models.Profile
+        fields = '__all__'
+    
 class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:

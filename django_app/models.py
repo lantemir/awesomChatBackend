@@ -37,7 +37,8 @@ class TextModel(models.Model):
 #     )
 
 def upload_thumbnail(instance, filename):
-    path = f'thubnails/{instance.username}'
+    user = instance.user
+    path = f'thubnails/{user.username}'
     extension= filename.split('.')[-1]
     if extension:
         path = path + '.' + extension
