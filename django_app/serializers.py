@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django_app import models
-from .models import User
+from .models import User, Connection
 
 
 
@@ -27,10 +27,17 @@ class UserSerializer(serializers.ModelSerializer):
     
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    
+    avatar = serializers.ImageField()
+
     class Meta:
         model = models.Profile
-        fields = '__all__'
+        fields = [
+            'user',
+            'avatar',
+            
+        ]
+
+        
     
 class SignUpSerializer(serializers.ModelSerializer):
 
@@ -62,3 +69,41 @@ class SignUpSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class SearchSerializer(UserSerializer):
+    status = serializers.SerializerMethodField()
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'name',
+            #'thumbnail',
+            'status',
+            'profile'
+        ]
+    def get_status(self, obj):
+        if obj.pending_them:
+            return 'pending-them'
+        elif obj.pending_me:
+            return 'pending-me'
+        elif obj.connected:
+            return 'connected'
+        return 'no-connection'
+    
+class RequestSerializer(serializers.ModelSerializer):
+    sender = UserSerializer()
+    receiver = UserSerializer()
+    profile = ProfileSerializer(source='sender.profile')
+
+    class Meta: 
+        model = Connection
+        fields = [
+                'id',
+                'sender',
+                'receiver',
+                'created',
+                'profile'
+        ]

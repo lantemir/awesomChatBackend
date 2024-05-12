@@ -4,7 +4,10 @@ import json
 import base64
 from django.core.files.base import ContentFile
 from django_app import models
-from .serializers import SignUpSerializer, ProfileSerializer, UserSerializer
+from .serializers import SignUpSerializer, ProfileSerializer, UserSerializer, SearchSerializer, RequestSerializer
+
+from django.db.models import Q, Exists, OuterRef
+from .models import User, Connection
 
 class ChatConsumer(WebsocketConsumer):
 
@@ -37,9 +40,98 @@ class ChatConsumer(WebsocketConsumer):
 
         print('receive', json.dumps(data, indent=2))
 
+        
+        # Make friend request
+        if data_source == 'request.connect':
+            self.receive_request_connect(data)
+
+        # GET equest.list
+        elif data_source == 'request.list':
+            self.receive_request_list(data)
+        
+        # Search / filter users
+        elif data_source == 'search':
+            self.receive_search(data)
+
         # Thumbnail upload
-        if data_source == 'thumbnail':
+        elif data_source == 'thumbnail':
             self.receive_thumbnail(data)
+
+    def receive_request_list(self, data):
+        user = self.scope['user']
+        # Get connection  made to this user
+        connections = Connection.objects.filter(
+            receiver=user,
+            accepted=False
+        )
+        serialized = RequestSerializer(connections, many=True)
+        # Send request lit back to this user
+        self.send_group(user.username, 'request.list', serialized.data)
+
+    def receive_request_connect(self, data):
+        username = data.get('username')
+        try:
+            receiver = User.objects.get(username=username)
+        except User.DoesNotExist:
+            print('Error user not found')
+            return
+        ##Create connection##
+        connection, _ = Connection.objects.get_or_create(
+            sender=self.scope['user'],
+            receiver=receiver
+        )
+        ##serialized connection##
+        print( "serialized@@@!!!")
+        print("connection@@@!!!", connection)
+        serialized = RequestSerializer(connection)
+        print(serialized.data, "serialized@@@")
+        # Send back to sender##
+        self.send_group(connection.sender.username, 'request.connect', serialized.data)
+
+        ##Send to receiver##
+        self.send_group(
+            connection.receiver.username, 'request.connect', serialized.data
+        )
+
+
+
+    def receive_search(self, data):
+        query = data.get('query')
+        # Get users from query search term
+        users = User.objects.filter(
+            Q(username__istartswith=query) |
+            Q(first_name__istartswith=query) |
+            Q(last_name__istartswith=query)
+        ).exclude(
+            username=self.username
+        ).annotate(
+            pending_them=Exists(
+                Connection.objects.filter(
+                    sender = self.scope['user'],
+                    receiver=OuterRef('id'),
+                    accepted=False
+                )
+            ),
+            pending_me=Exists(
+                Connection.objects.filter(
+                    sender = OuterRef('id'),
+                    receiver=self.scope['user'],
+                    accepted=False
+                )
+            ),
+            connected=Exists(
+                Connection.objects.filter(
+                  Q(sender=self.scope['user'], receiver=OuterRef('id') ),
+                  Q(receiver=self.scope['user'], sender=OuterRef('id') ),
+                  accepted=True
+            ),   
+            )       
+        )
+        # serialize results
+        serialized = SearchSerializer(users, many=True)
+        print( serialized.data)
+        # Send search results back to this user
+        self.send_group(self.username, 'search', serialized.data)
         
     def receive_thumbnail(self, data):
         user = self.scope['user']

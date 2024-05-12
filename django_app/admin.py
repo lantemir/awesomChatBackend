@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django_app import models
+from .models import Connection
 
 
 # Register your models here.
@@ -46,5 +47,6 @@ class TextModelAdmin(admin.ModelAdmin):
 
 admin.site.register(models.TextModel, TextModelAdmin )
 admin.site.register(models.Profile)
+admin.site.register(Connection)
 
 
