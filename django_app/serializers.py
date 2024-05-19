@@ -93,10 +93,25 @@ class SearchSerializer(UserSerializer):
             return 'connected'
         return 'no-connection'
     
+class SearchSerializerTest(UserSerializer):   
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'name',
+            #'thumbnail',        
+            'profile'
+        ]
+    
+    
+    
 class RequestSerializer(serializers.ModelSerializer):
     sender = UserSerializer()
     receiver = UserSerializer()
-    profile = ProfileSerializer(source='sender.profile')
+    senderprofile = ProfileSerializer(source='sender.profile')    
+    user = serializers.SerializerMethodField()
 
     class Meta: 
         model = Connection
@@ -105,5 +120,14 @@ class RequestSerializer(serializers.ModelSerializer):
                 'sender',
                 'receiver',
                 'created',
-                'profile'
+                'senderprofile',
+                'user'              
         ]
+    def get_user(self, obj):
+        receiver = obj.receiver
+        user_data = {
+            'username': receiver.username,
+            'name': f"{receiver.first_name} {receiver.last_name}"
+            # Здесь вы можете добавить другие поля пользователя, если необходимо
+        }
+        return user_data

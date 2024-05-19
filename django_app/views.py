@@ -75,6 +75,7 @@ class SignInView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):        
+        print("SignInView@@@")
         username = request.data.get('username') 
         password = request.data.get('password')
         if not username or not password:
