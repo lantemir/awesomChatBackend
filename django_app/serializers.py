@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django_app import models
-from .models import User, Connection
+from .models import User, Connection, Message
 
 
 
@@ -93,17 +93,30 @@ class SearchSerializer(UserSerializer):
             return 'connected'
         return 'no-connection'
     
-class SearchSerializerTest(UserSerializer):   
-    profile = ProfileSerializer()
+# class AddProfileSerializer(UserSerializer):   
+#     profile = ProfileSerializer()
+
+#     class Meta:
+#         model = User
+#         fields = [                    
+#             'profile'
+#         ]
+class AddProfileSerializer(serializers.ModelSerializer):    
+    name = serializers.SerializerMethodField()
+    avatar = serializers.ImageField(source='profile.avatar')
 
     class Meta:
         model = User
         fields = [
             'username',
             'name',
-            #'thumbnail',        
-            'profile'
+            'avatar'
         ]
+    
+    def get_name(self, obj):
+        fname = obj.first_name.capitalize()
+        lname = obj.last_name.capitalize()
+        return f"{fname} {lname}"
     
     
     
@@ -131,3 +144,51 @@ class RequestSerializer(serializers.ModelSerializer):
             # Здесь вы можете добавить другие поля пользователя, если необходимо
         }
         return user_data
+    
+class FriendSerializer(serializers.ModelSerializer):
+    friend =serializers.SerializerMethodField()
+    preview = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Connection
+        fields = [
+            'id',
+            'friend',
+            'preview',
+            'updated'          
+        ]
+    
+    def get_friend(self, obj):
+        # If I am a sender
+        if self.context['user'] == obj.sender:
+            return AddProfileSerializer(obj.receiver).data
+        # If I am  receiver
+        elif self.context['user'] == obj.receiver:
+            return AddProfileSerializer(obj.sender).data
+        else:
+            print('Error: No user found in friendSerializer')
+        
+    def get_preview(self, data):
+        return 'New connection'
+    
+
+class MessageSerializer(serializers.ModelSerializer):
+    is_me = serializers.SerializerMethodField()
+    profile = serializers.SerializerMethodField()
+
+    class Meta:
+        model=Message
+        fields = [
+            'id',
+            'is_me',
+            'text',
+            'created',
+            'profile'
+
+        ]
+
+    def get_is_me(self, obj):
+        return self.context['user'] == obj.user
+    
+    def get_profile(self, obj):
+        return AddProfileSerializer(obj.user).data
