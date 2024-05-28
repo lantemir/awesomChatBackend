@@ -60,7 +60,7 @@ def chat(request, sms_id=None):
 
 def get_auth_for_user(user):
     tokens = RefreshToken.for_user(user)
-    print('token', tokens)
+
     prof = models.Profile.objects.get(user = user)
     return{
         'user': UserSerializer(user).data,
@@ -75,7 +75,7 @@ class SignInView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):        
-        print("SignInView@@@")
+   
         username = request.data.get('username') 
         password = request.data.get('password')
         if not username or not password:
@@ -85,7 +85,7 @@ class SignInView(APIView):
             Response(status=401)
         user_data = get_auth_for_user(user)
 
-        print("user_data SignInView@@@", user_data)
+       
 
         return Response(user_data)
     
@@ -96,7 +96,6 @@ class SignUpView(APIView):
         new_user = SignUpSerializer(data = request.data)
         new_user.is_valid(raise_exception = True)
         user = new_user.save()
-        user_data = get_auth_for_user(user)
-        print("user_data SignUpView@@@", user_data)
+        user_data = get_auth_for_user(user)    
 
         return Response(user_data)

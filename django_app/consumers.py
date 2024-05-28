@@ -9,6 +9,7 @@ from .serializers import (SignUpSerializer, ProfileSerializer, UserSerializer,
                           MessageSerializer)
 
 from django.db.models import Q, Exists, OuterRef
+from django.db.models.functions import Coalesce
 from .models import User, Connection, Message
 
 class ChatConsumer(WebsocketConsumer):
@@ -39,9 +40,7 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data):
         try:  
             data = json.loads(text_data)
-            data_source = data.get('source')
-
-            print("receive_data_source!!!@@@ " , data_source)
+            data_source = data.get('source')        
 
              # get friend list
             if data_source == 'friend.list':
@@ -54,6 +53,10 @@ class ChatConsumer(WebsocketConsumer):
              # Message has been sent
             elif data_source == 'message.send':
                 self.receive_message_send(data)
+
+             # User is typing message
+            elif data_source == 'message.type':
+                self.receive_message_type(data)
              
             # accept friend request
             elif data_source == 'request.accept':
@@ -86,6 +89,8 @@ class ChatConsumer(WebsocketConsumer):
         user = self.scope['user']
         connectionId = data.get('connectionId')
         page = data.get('page')
+        page_size = 16
+
         try:
             connection = Connection.objects.get(
                 id = connectionId
@@ -95,7 +100,9 @@ class ChatConsumer(WebsocketConsumer):
             return
         messages = Message.objects.filter(
             connection = connection
-        ).order_by('-created')
+        ).order_by('-created')[page * page_size:(page+1) * page_size]
+
+       
 
         serialized_messages = MessageSerializer(
             messages,
@@ -112,8 +119,16 @@ class ChatConsumer(WebsocketConsumer):
         #Serialize friend 
         serialized_friend = UserSerializer(recipient)
 
+        # count the total number of messagesfor this connections
+        messages_count = Message.objects.filter(
+            connection = connection
+        ).count()     
+
+        next_page = page + 1 if messages_count >(page+1)*page_size else None,
+
         data ={
             'messages': serialized_messages.data,
+            'next': next_page,
             'friend': serialized_friend.data
         }
         # send back to the requstor
@@ -176,15 +191,33 @@ class ChatConsumer(WebsocketConsumer):
         self.send_group(recipient.username, 'message.send', data)
 
 
+    def receive_message_type(self, data):
+        user = self.scope['user']
+        recipient_username = data.get('username')
+        data = {
+            'username': user.username
+        }
+        self.send_group(recipient_username, 'message.type', data)
+
            
     def receive_friend_list(self, data):
         user = self.scope['user']
+        #Latest message subquery
+        latest_message = Message.objects.filter(
+            connection = OuterRef('id')
+        ).order_by('-created')[:1]
+
         # Get connection for user
         connections = Connection.objects.filter(
             Q(sender = user) | Q(receiver = user),
             accepted=True
+        ).annotate(
+            latest_text=latest_message.values('text'),
+            latest_created=latest_message.values('created')
+        ).order_by(
+            Coalesce('latest_created', 'updated').desc()
         )
-        print('OOOOIIIIIOOOconnections: ', connections)
+    
         serialized = FriendSerializer(connections, context={'user': user }, many=True)
         # Send data back to requesting user
         self.send_group(user.username, 'friend.list', serialized.data)
@@ -213,6 +246,29 @@ class ChatConsumer(WebsocketConsumer):
         self.send_group(
             connection.receiver.username, 'request.accept', serialized.data
         )
+
+
+        # Send new friend object to sender
+        serialized_friend = FriendSerializer(
+            connection,
+            context={
+                'user': connection.sender
+            }
+        )
+        self.send_group(
+            connection.sender.username, 'friend.new', serialized_friend.data
+        )
+          # Send new friend object to reciver
+        serialized_friend = FriendSerializer(
+            connection,
+            context={
+                'user': connection.receiver
+            }
+        )
+        self.send_group(
+            connection.receiver.username, 'friend.new', serialized_friend.data
+        )
+       
 
     def receive_request_list(self, data):
 
@@ -292,11 +348,11 @@ class ChatConsumer(WebsocketConsumer):
             )       
         )
 
-        print("receive_search_receive_search@", users)
+
         # serialize results
         serialized = SearchSerializer(users, many=True)
 
-        print("receive_search_data@@@", serialized.data)
+      
   
         # Send search results back to this user
         self.send_group(self.username, 'search', serialized.data)
@@ -333,11 +389,7 @@ class ChatConsumer(WebsocketConsumer):
         # Catch/ all broadcast to client helper
 
     def send_group(self, group, source, data):
-
-        print("source!!!", source)
-        print("data!!!", data)
-        print("group!!!", group)
-        print("self!!!", self)
+   
         response = {
                 'type': 'broadcast_group',
                 'source':source,
@@ -354,7 +406,7 @@ class ChatConsumer(WebsocketConsumer):
             - source: where it originated from
             - data: what ever you want to send as a dict
         '''
-        print("data___broadcast_group", data)
+     
       
         # data.pop('type')
          
