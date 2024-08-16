@@ -8,3 +8,5 @@ env.bak/
 venv.bak/
 
 node_modules/
+
+__pycache__/
