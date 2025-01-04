@@ -82,7 +82,7 @@ class SignInView(APIView):
             return Response(status=400)
         user = authenticate(username = username, password=password)
         if not user:
-            Response(status=401)
+            return Response(status=401)
         user_data = get_auth_for_user(user)
 
        
